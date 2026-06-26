@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jerry Feng | BDR Demo — Navattic</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0E0E11;
+    --surface: #17171C;
+    --border: #2A2A35;
+    --accent: #5B6EF5;
+    --accent-light: #7E8FF7;
+    --accent-glow: rgba(91,110,245,0.15);
+    --green: #22C55E;
+    --text: #E8E8F0;
+    --muted: #8888A0;
+    --tag-bg: #1E1E2A;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    height: 52px;
+    flex-shrink: 0;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 14px; }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+  .logo span { color: var(--accent-light); }
+  .divider-v { width: 1px; height: 18px; background: var(--border); }
+  .demo-label { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: 0.3px; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .btn-ghost {
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;
+    font-family: 'Inter', sans-serif; transition: all .2s;
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--text); }
+  .btn-primary {
+    background: var(--accent); border: none; color: #fff;
+    padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: 'Inter', sans-serif; transition: all .2s;
+  }
+  .btn-primary:hover { background: var(--accent-light); }
+
+  /* ── SHELL ── */
+  .shell { display: flex; flex: 1; overflow: hidden; height: calc(100vh - 52px); }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 240px; background: var(--surface); border-right: 1px solid var(--border);
+    flex-shrink: 0; display: flex; flex-direction: column; overflow-y: auto;
+  }
+  .sidebar-section {
+    padding: 16px 14px 8px; font-size: 10px; font-weight: 600;
+    color: var(--muted); letter-spacing: 1px; text-transform: uppercase;
+  }
+  .step-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 14px;
+    cursor: pointer; transition: background .15s; border-left: 2px solid transparent;
+  }
+  .step-item:hover { background: var(--accent-glow); }
+  .step-item.active { background: var(--accent-glow); border-left-color: var(--accent); }
+  .step-num {
+    width: 22px; height: 22px; border-radius: 50%; background: var(--tag-bg);
+    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: var(--muted); flex-shrink: 0;
+  }
+  .step-item.active .step-num { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .step-item.done .step-num { background: var(--accent); border-color: var(--accent); color: #fff; font-size: 9px; }
+  .step-label { font-size: 12px; color: var(--muted); font-weight: 500; line-height: 1.3; }
+  .step-item.active .step-label { color: var(--text); }
+
+  /* ── MAIN ── */
+  .main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+  .slide { display: none; flex: 1; overflow-y: auto; padding: 40px 48px; animation: fadeIn .25s ease; }
+  .slide.active { display: flex; flex-direction: column; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    background: var(--surface); border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; flex-shrink: 0;
+  }
+  .progress-bar { flex: 1; max-width: 260px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin: 0 20px; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .4s ease; }
+  .step-counter { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .nav-btn {
+    background: var(--tag-bg); border: 1px solid var(--border); color: var(--text);
+    padding: 7px 16px; border-radius: 6px; font-size: 13px; font-weight: 500;
+    cursor: pointer; font-family: 'Inter', sans-serif; transition: all .2s;
+  }
+  .nav-btn:hover { border-color: var(--accent); }
+  .nav-btn.next-btn { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .nav-btn.next-btn:hover { background: var(--accent-light); }
+  .nav-btn:disabled { opacity: 0.35; cursor: default; }
+
+  /* ── SHARED COMPONENTS ── */
+  .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent-light); margin-bottom: 10px; }
+  .slide-title { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: var(--text); line-height: 1.2; margin-bottom: 10px; letter-spacing: -0.5px; }
+  .slide-sub { font-size: 14px; color: var(--muted); line-height: 1.6; max-width: 580px; margin-bottom: 32px; }
+
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 18px 16px; transition: border-color .2s, box-shadow .2s; }
+  .card:hover { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .card-icon { font-size: 20px; margin-bottom: 10px; }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+  .card-body { font-size: 12px; color: var(--muted); line-height: 1.55; }
+
+  .tag-row { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 24px; }
+  .tag { background: var(--tag-bg); border: 1px solid var(--border); border-radius: 20px; padding: 4px 11px; font-size: 11px; color: var(--muted); font-weight: 500; }
+  .tag.accent { background: var(--accent-glow); border-color: var(--accent); color: var(--accent-light); }
+  .tag.green { background: rgba(34,197,94,0.1); border-color: var(--green); color: var(--green); }
+
+  .metrics { display: flex; gap: 28px; flex-wrap: wrap; margin-bottom: 32px; }
+  .metric-val { font-family: 'Syne', sans-serif; font-size: 30px; font-weight: 800; color: var(--text); line-height: 1; letter-spacing: -1px; }
+  .metric-val span { color: var(--accent-light); }
+  .metric-label { font-size: 11px; color: var(--muted); margin-top: 4px; font-weight: 500; }
+
+  .timeline { display: flex; flex-direction: column; }
+  .tl-item { display: flex; gap: 16px; padding-bottom: 24px; }
+  .tl-item:last-child { padding-bottom: 0; }
+  .tl-left { display: flex; flex-direction: column; align-items: center; width: 32px; flex-shrink: 0; }
+  .tl-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); box-shadow: 0 0 0 2px var(--accent); flex-shrink: 0; margin-top: 4px; }
+  .tl-line { flex: 1; width: 1px; background: var(--border); margin-top: 6px; }
+  .tl-item:last-child .tl-line { display: none; }
+  .tl-date { font-size: 10px; color: var(--muted); font-weight: 600; letter-spacing: 0.5px; margin-bottom: 3px; }
+  .tl-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .tl-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .tl-bullets { margin-top: 6px; padding-left: 14px; }
+  .tl-bullets li { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 2px; }
+  .tl-bullets li span { color: var(--text); }
+
+  .crm-table { width: 100%; border-collapse: collapse; }
+  .crm-table th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); font-weight: 600; padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+  .crm-table td { padding: 11px 12px; font-size: 12px; color: var(--text); border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .crm-table tr:last-child td { border-bottom: none; }
+  .crm-table tr:hover td { background: var(--accent-glow); }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+  .badge.green { background: rgba(34,197,94,0.12); color: var(--green); }
+  .badge.blue { background: var(--accent-glow); color: var(--accent-light); }
+  .badge.muted { background: var(--tag-bg); color: var(--muted); }
+
+  .email-mock { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; max-width: 600px; }
+  .email-header { background: var(--tag-bg); border-bottom: 1px solid var(--border); padding: 14px 18px; }
+  .email-field { display: flex; gap: 10px; margin-bottom: 4px; font-size: 12px; }
+  .email-field:last-child { margin-bottom: 0; }
+  .email-field-label { color: var(--muted); font-weight: 600; width: 44px; flex-shrink: 0; }
+  .email-field-val { color: var(--text); }
+  .email-body { padding: 18px 18px 20px; font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .email-body p { margin-bottom: 12px; }
+  .email-body .hi { color: var(--text); }
+
+  .fit-row { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+  .fit-label { font-size: 12px; color: var(--muted); width: 180px; flex-shrink: 0; font-weight: 500; }
+  .fit-bar { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .fit-fill { height: 100%; border-radius: 3px; background: var(--accent); }
+  .fit-fill.green { background: var(--green); }
+  .fit-pct { font-size: 11px; color: var(--muted); width: 32px; text-align: right; }
+
+  .quote-block { background: var(--surface); border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0; padding: 16px 20px; margin: 20px 0; }
+  .quote-text { font-size: 13px; line-height: 1.65; color: var(--text); font-style: italic; margin-bottom: 8px; }
+  .quote-attr { font-size: 11px; color: var(--muted); font-weight: 600; }
+
+  .tooltip-pulse {
+    display: inline-flex; align-items: center; gap: 6px; background: var(--accent); color: #fff;
+    font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; margin-bottom: 16px;
+    animation: pulse 2s ease infinite;
+  }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(91,110,245,.5)} 50%{box-shadow:0 0 0 6px rgba(91,110,245,0)} }
+  .dot-live { width: 6px; height: 6px; border-radius: 50%; background: #fff; }
+
+  .cta-block {
+    background: linear-gradient(135deg, rgba(91,110,245,0.1) 0%, rgba(91,110,245,0.03) 100%);
+    border: 1px solid var(--accent); border-radius: 12px; padding: 36px 40px; text-align: center; max-width: 560px; margin: auto;
+  }
+  .cta-block .slide-title { font-size: 26px; margin-bottom: 10px; }
+  .cta-block .slide-sub { margin: 0 auto 26px; text-align: center; }
+  .cta-links { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .cta-link { padding: 9px 18px; border-radius: 7px; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+  .cta-link.primary { background: var(--accent); color: #fff; border: none; }
+  .cta-link.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">nav<span>attic</span></div>
+    <div class="divider-v"></div>
+    <div class="demo-label">Interactive Candidate Demo · Jerry Feng</div>
+  </div>
+  <div class="topbar-right">
+    <button class="btn-ghost">Share</button>
+    <button class="btn-primary" onclick="window.location='mailto:jf4584@nyu.edu'">Book a Call →</button>
+  </div>
+</div>
+
+<div class="shell">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">Candidate Tour</div>
+    <div class="step-item active" onclick="goTo(0)"><div class="step-num" id="sn0">1</div><div class="step-label">Welcome to Jerry</div></div>
+    <div class="step-item" onclick="goTo(1)"><div class="step-num" id="sn1">2</div><div class="step-label">Experience Snapshot</div></div>
+    <div class="step-item" onclick="goTo(2)"><div class="step-num" id="sn2">3</div><div class="step-label">Skills & Tools</div></div>
+    <div class="step-item" onclick="goTo(3)"><div class="step-num" id="sn3">4</div><div class="step-label">Sample Outreach</div></div>
+    <div class="step-item" onclick="goTo(4)"><div class="step-num" id="sn4">5</div><div class="step-label">Navattic Fit Score</div></div>
+    <div class="step-item" onclick="goTo(5)"><div class="step-num" id="sn5">6</div><div class="step-label">Let's Connect</div></div>
+  </div>
+
+  <div class="main">
+
+    <!-- SLIDE 0: Welcome -->
+    <div class="slide active" id="slide-0">
+      <div class="tooltip-pulse"><div class="dot-live"></div> Interactive Demo</div>
+      <div class="eyebrow">Business Development Lead · Application</div>
+      <div class="slide-title">Hi Kateri —<br>I'm Jerry Feng.</div>
+      <div class="slide-sub">You built a platform for "try before you buy." I figured the best way to apply was to use that exact concept — on myself. Click through to see what I'd bring to Navattic's BDR motion.</div>
+
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-val">NYU<span>.</span></div>
+          <div class="metric-label">B.S. Integrated Media & Design, 2025</div>
+        </div>
+        <div class="metric">
+          <div class="metric-val">3<span>+</span></div>
+          <div class="metric-label">Client-facing & analyst roles</div>
+        </div>
+        <div class="metric">
+          <div class="metric-val">NYC<span>.</span></div>
+          <div class="metric-label">Based — WeWork-ready</div>
+        </div>
+        <div class="metric">
+          <div class="metric-val">3.3<span>.</span></div>
+          <div class="metric-label">GPA</div>
+        </div>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-title">Data-first communicator</div>
+          <div class="card-body">I don't just send and hope. I pay attention to what's working, adjust quickly, and communicate findings in a way that's useful to the people around me.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Outreach-minded</div>
+          <div class="card-body">I understand that good outreach isn't about volume — it's about relevance. I think carefully about who I'm talking to and what actually matters to them.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Eager to learn</div>
+          <div class="card-body">I pick up new tools fast and genuinely enjoy the process. If there's a better way to do something, I want to find it — not be told to find it.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Multilingual</div>
+          <div class="card-body">Fluent in Mandarin and Cantonese in addition to English. Useful now, and potentially more useful as Navattic scales into new markets.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 1: Experience -->
+    <div class="slide" id="slide-1">
+      <div class="eyebrow">Work History</div>
+      <div class="slide-title">Where I've been.<br>What I built.</div>
+      <div class="slide-sub">Three roles that directly map to the BDR scope: data analysis, stakeholder outreach, and fast-paced execution.</div>
+
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div>
+          <div class="tl-content">
+            <div class="tl-date">JUN 2025 – FEB 2026 · NEW YORK, NY</div>
+            <div class="tl-title">Handshake AI — AI Project Analyst (Contractor)</div>
+            <ul class="tl-bullets">
+              <li>Investigated product issues and <span>translated complex technical findings into clear, actionable insights</span> for both technical and non-technical audiences — core BDR skill.</li>
+              <li>Performed data analysis to identify trends and troubleshoot operational challenges across an AI product.</li>
+              <li>Managed multiple priorities in a fast-paced startup environment with strong attention to detail.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div>
+          <div class="tl-content">
+            <div class="tl-date">SEP 2024 – MAY 2025 · NEW YORK, NY</div>
+            <div class="tl-title">NYU Athletics — Program Operations Analyst</div>
+            <ul class="tl-bullets">
+              <li>Supported marketing and <span>outreach across 25+ athletic programs</span>, driving audience engagement through targeted promotional efforts.</li>
+              <li>Built relationships with students, campus organizations, and stakeholders — the exact motion of BDR prospecting.</li>
+              <li>Analyzed engagement trends and <span>presented campaign performance recommendations to managers</span>.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot"></div></div>
+          <div class="tl-content">
+            <div class="tl-date">JUN – AUG 2023 · NEW YORK, NY</div>
+            <div class="tl-title">Ralph Lauren — Summer Marketing Intern</div>
+            <ul class="tl-bullets">
+              <li>Conducted market research and <span>customer analysis</span> to identify consumer trends and competitive insights.</li>
+              <li>Collaborated with internal teams and external partners on campaign execution and <span>stakeholder communication</span>.</li>
+              <li>Used Salesforce as system of record; managed multiple deliverables in a corporate environment.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: Skills -->
+    <div class="slide" id="slide-2">
+      <div class="eyebrow">Skills & Tools</div>
+      <div class="slide-title">What I bring to the stack.</div>
+      <div class="slide-sub">Tools I've used in real roles, not just listed. Mapped to what actually matters in a BDR seat at a PLG company.</div>
+
+      <div style="margin-bottom: 28px;">
+        <div class="tl-date" style="margin-bottom: 10px;">SALES & CRM</div>
+        <div class="tag-row">
+          <div class="tag accent">Salesforce</div>
+          <div class="tag accent">Google Analytics</div>
+          <div class="tag">MS Office Suite</div>
+          <div class="tag">Google Workspace</div>
+        </div>
+
+        <div class="tl-date" style="margin-bottom: 10px; margin-top: 18px;">DATA & ANALYSIS</div>
+        <div class="tag-row">
+          <div class="tag accent">Excel</div>
+          <div class="tag accent">SQL</div>
+          <div class="tag accent">Python</div>
+          <div class="tag">Tableau</div>
+          <div class="tag">Power BI</div>
+        </div>
+
+        <div class="tl-date" style="margin-bottom: 10px; margin-top: 18px;">LANGUAGES</div>
+        <div class="tag-row">
+          <div class="tag green">English (Native)</div>
+          <div class="tag green">Mandarin (Fluent)</div>
+          <div class="tag green">Cantonese (Fluent)</div>
+        </div>
+
+        <div class="tl-date" style="margin-bottom: 10px; margin-top: 18px;">CORE COMPETENCIES</div>
+        <div class="tag-row">
+          <div class="tag">Stakeholder Communication</div>
+          <div class="tag">Market Research</div>
+          <div class="tag">Campaign Analysis</div>
+          <div class="tag">Cross-functional Collaboration</div>
+          <div class="tag">Data Storytelling</div>
+          <div class="tag">Process Automation (Python / Node.js)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: Sample Outreach -->
+    <div class="slide" id="slide-3">
+      <div class="eyebrow">Live Example</div>
+      <div class="slide-title">Cold outreach I'd actually send.</div>
+      <div class="slide-sub">A sample first-touch email to a Director of Growth at a B2B SaaS company — the kind of sequence I'd build and refine with your Head of Growth from week one.</div>
+
+      <div class="email-mock">
+        <div class="email-header">
+          <div class="email-field"><span class="email-field-label">From:</span><span class="email-field-val">jerry.feng@navattic.com</span></div>
+          <div class="email-field"><span class="email-field-label">To:</span><span class="email-field-val">maya.chen@b2bsaas-co.com (Director of Growth)</span></div>
+          <div class="email-field"><span class="email-field-label">Subject:</span><span class="email-field-val">your demo page is leaving pipeline on the table</span></div>
+        </div>
+        <div class="email-body">
+          <p class="hi">Hi Maya,</p>
+          <p>Checked out <span class="hi">SaaSCo's</span> product page — the feature list is solid, but you're asking visitors to book a call before they've touched anything. In B2B SaaS, that's a big ask for cold traffic.</p>
+          <p>Companies like <span class="hi">Ramp and Dropbox</span> now let prospects click through the actual product on their site before ever talking to sales. One customer told us it drove <span class="hi">15% of their pipeline</span> from visitors who would have otherwise bounced.</p>
+          <p>I put together a quick look at what a <span class="hi">SaaSCo interactive demo</span> could feel like — no code, no presales time required: <span class="hi">[navattic.com/demo-preview/saasco]</span></p>
+          <p>Worth 15 minutes this week to see if it fits your motion?</p>
+          <p style="color: var(--text);">Jerry Feng<br><span style="color: var(--muted); font-size: 12px;">Business Development · Navattic · (917) 436-6298</span></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: Fit Score -->
+    <div class="slide" id="slide-4">
+      <div class="eyebrow">Candidate Analysis</div>
+      <div class="slide-title">Navattic fit score.<br>Being honest.</div>
+      <div class="slide-sub">Based on the job description — mapped to my actual background. I'm not hiding the gaps; I'm showing you exactly where I'd ramp fast.</div>
+
+      <div style="margin-bottom: 32px; max-width: 560px;">
+        <div class="fit-row">
+          <div class="fit-label">Outbound email & LinkedIn</div>
+          <div class="fit-bar"><div class="fit-fill green" style="width:85%"></div></div>
+          <div class="fit-pct">85%</div>
+        </div>
+        <div class="fit-row">
+          <div class="fit-label">Stakeholder communication</div>
+          <div class="fit-bar"><div class="fit-fill green" style="width:90%"></div></div>
+          <div class="fit-pct">90%</div>
+        </div>
+        <div class="fit-row">
+          <div class="fit-label">Data analysis & reporting</div>
+          <div class="fit-bar"><div class="fit-fill green" style="width:88%"></div></div>
+          <div class="fit-pct">88%</div>
+        </div>
+        <div class="fit-row">
+          <div class="fit-label">CRM / Salesforce usage</div>
+          <div class="fit-bar"><div class="fit-fill" style="width:80%"></div></div>
+          <div class="fit-pct">80%</div>
+        </div>
+        <div class="fit-row">
+          <div class="fit-label">B2B SaaS / PLG context</div>
+          <div class="fit-bar"><div class="fit-fill" style="width:70%"></div></div>
+          <div class="fit-pct">70%</div>
+        </div>
+        <div class="fit-row">
+          <div class="fit-label">Navattic demo building</div>
+          <div class="fit-bar"><div class="fit-fill" style="width:55%"></div></div>
+          <div class="fit-pct">55%</div>
+        </div>
+        <div class="fit-row">
+          <div class="fit-label">NYC-based, remote-first ready</div>
+          <div class="fit-bar"><div class="fit-fill green" style="width:100%"></div></div>
+          <div class="fit-pct">100%</div>
+        </div>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-title">Biggest strength</div>
+          <div class="card-body">I care about the work behind the work — understanding why something converts, not just whether it does. That makes me better at iterating, not just executing.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Honest gap</div>
+          <div class="card-body">I haven't built Navattic demos professionally yet. This demo is my answer to that — I'd rather show you how I learn than tell you I'm a fast learner.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Worth mentioning</div>
+          <div class="card-body">Fluent in Mandarin and Cantonese. No immediate ask attached to that — just something that could open doors down the line.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: CTA -->
+    <div class="slide" id="slide-5">
+      <div class="cta-block">
+        <div class="eyebrow" style="text-align:center;">End of demo · 6 steps complete</div>
+        <div class="slide-title">Ready to talk?<br>So am I.</div>
+        <div class="slide-sub">You asked for creative outreach to help an application stand out. I built you an interactive demo of myself — using the exact concept Navattic sells. That's the energy I'd bring to every prospect sequence.</div>
+        <div class="cta-links">
+          <a class="cta-link primary" href="https://www.linkedin.com/in/jerryfeng13" target="_blank">LinkedIn</a>
+          <a class="cta-link secondary" href="mailto:jf4584@nyu.edu">jf4584@nyu.edu</a>
+          <a class="cta-link secondary" href="tel:9174366298">(917) 436-6298</a>
+        </div>
+        <div style="margin-top: 22px; font-size: 11px; color: var(--muted);">Built with the spirit of Navattic · "Try before you hire."</div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-btn" id="prev-btn" onclick="prevSlide()" disabled>← Back</button>
+  <div style="display:flex;align-items:center;gap:10px;flex:1;justify-content:center;">
+    <div class="step-counter" id="step-counter">Step 1 of 6</div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:16.7%"></div></div>
+  </div>
+  <button class="nav-btn next-btn" id="next-btn" onclick="nextSlide()">Next →</button>
+</div>
+
+<script>
+  let current = 0;
+  const total = 6;
+
+  function goTo(n) {
+    document.querySelectorAll('.slide').forEach((s, i) => s.classList.toggle('active', i === n));
+    document.querySelectorAll('.step-item').forEach((s, i) => {
+      s.classList.remove('active', 'done');
+      if (i === n) s.classList.add('active');
+      if (i < n) s.classList.add('done');
+    });
+    for (let i = 0; i < total; i++) {
+      const el = document.getElementById('sn' + i);
+      if (i < n) el.textContent = '✓';
+      else el.textContent = i + 1;
+    }
+    document.getElementById('step-counter').textContent = `Step ${n + 1} of ${total}`;
+    document.getElementById('progress-fill').style.width = `${((n + 1) / total) * 100}%`;
+    document.getElementById('prev-btn').disabled = n === 0;
+    document.getElementById('next-btn').textContent = n === total - 1 ? '✓ Done' : 'Next →';
+    document.getElementById('next-btn').disabled = n === total - 1;
+    current = n;
+  }
+
+  function nextSlide() { if (current < total - 1) goTo(current + 1); }
+  function prevSlide() { if (current > 0) goTo(current - 1); }
+</script>
+</body>
+</html>
